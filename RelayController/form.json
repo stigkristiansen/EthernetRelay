@@ -1,6 +1,7 @@
 {
     "elements":
     [
+	{ "type": "PasswordTextBox", "name": "password", "caption": "Password" }    
 	{ "type": "CheckBox", "name": "log", "caption": "Enable logging" }
     ],
 
