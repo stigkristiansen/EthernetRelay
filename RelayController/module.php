@@ -75,7 +75,7 @@ class EthernetRelay extends IPSModule
 		return true;
 	}
 	
-	public function Switch(int $RelayNumber, boolean $Status) {
+	public function SwitchMode(int $RelayNumber, boolean $Status) {
 		if(status) {
 			$cmd = "DOA"
 		} else {
@@ -84,6 +84,8 @@ class EthernetRelay extends IPSModule
 		
 		SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
 		SendCmd(chr(91), "status");
+		
+		return true;
 	}
 	
 	
