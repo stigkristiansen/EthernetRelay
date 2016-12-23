@@ -11,17 +11,17 @@ class EthernetRelay extends IPSModule
         $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
         
         $this->RegisterPropertyBoolean ("log", false );
-	$this->RegisterPropertyBoolean ("password", "" );
+		$this->RegisterPropertyBoolean ("password", "" );
    }
 
     public function ApplyChanges(){
         parent::ApplyChanges();
         
         $this->RegisterVariableString("LastSendt", "LastSendt");
-	$this->RegisterVariableString("LastReceived", "LastReceived");
+		$this->RegisterVariableString("LastReceived", "LastReceived");
         
         IPS_SetHidden($this->GetIDForIdent('LastSendt'), true);
-	IPS_SetHidden($this->GetIDForIdent('LastReceived'), true);
+		IPS_SetHidden($this->GetIDForIdent('LastReceived'), true);
    
     }
 
@@ -38,39 +38,48 @@ class EthernetRelay extends IPSModule
 		    $log->LogMessage("Updated variable LastReceived");
 		    $this->Unlock("LastReceivedLock"); 
 		    
-                } 
-
+        } 
+		return true;
 		return true;
     }
 	
 	public function SendCommand(string $Command) {
-		if(!$this->EvaluateParent())
-			return false;
+		if ($this->Lock("InsideSendCommand")) { 
 		
-		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+			if(!$this->EvaluateParent())
+				return false;
+			
+			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 
-		$log->LogMessage("Sending command: ".$Command);
-		
-		$password = $this->ReadPropertyString("password");
-		//$buffer = ":".$Command.(strlen($password)>0?",".$password:"");
-		$buffer = $Command;		
-		try{
-			$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
+			$log->LogMessage("Sending command: ".$Command);
+			
+			$password = $this->ReadPropertyString("password");
+			$buffer = ":".$Command.(strlen($password)>0?",".$password:"");
+					
+			try{
+				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 
-			if ($this->Lock("LastSendtLock")) { 
-			    $Id = $this->GetIDForIdent("LastSendt");
-			    SetValueString($Id, $buffer);
-			    $log->LogMessage("Updated variable LastSendt");
-			    $this->Unlock("LastSendtLock"); 
-			} 
+				if ($this->Lock("LastSendtLock")) { 
+					$Id = $this->GetIDForIdent("LastSendt");
+					SetValueString($Id, $buffer);
+					$log->LogMessage("Updated variable LastSendt");
+					$this->Unlock("LastSendtLock"); 
+				}
+				
+			$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
 
-		} catch (Exeption $ex) {
-			$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
+			} catch (Exeption $ex) {
+				$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
+				
+				return false;
+			} finally {
+				$this->Unlock("InsideSendCommand"); 
+			}
 
-			return false;
-		}
-
-		return true;
+			return true;
+			
+		} else
+			$log->LogMessageError("Already locked for sending. Please retry...");
 
 	}
     
