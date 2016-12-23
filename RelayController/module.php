@@ -43,7 +43,7 @@ class EthernetRelay extends IPSModule
 			
 			$this->Unlock("InsideReceive"); 
 			return true;
-		else 
+		} else 
 			$log->LogMessageError("Already locked for receiving");
     }
 	
