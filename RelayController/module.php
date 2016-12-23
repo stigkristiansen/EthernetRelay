@@ -31,7 +31,7 @@ class EthernetRelay extends IPSModule
 		
 		$ident="checkrelaystatus";
 		$name="Check Relay Status";
-		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nrequire_once(IPS_GetKernelDirEx().\"scripts/__ipsmodule.inc.php\");\nrequire_once(\"../modules/EthernetRelay/RelayController/module.php\");\n(new EthernetRelay(".$this->InstanceID."))->CheckRelayStatus();\n?>");	
+		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nrequire_once(IPS_GetKernelDirEx().\"scripts/__ipsmodule.inc.php\");\nrequire_once(\"../modules/EthernetRelay/RelayController/module.php\");\n(new EthernetRelay(".$this->InstanceID."))->UpdateRelayStatus();\n?>");	
    
     }
 
@@ -70,7 +70,7 @@ class EthernetRelay extends IPSModule
 	
 	public function UpdateRelayStatus() {
 		
-		SendCmd(chr(91), "status");
+		$this->SendCmd(chr(91), "status");
 		
 		return true;
 	}
@@ -82,8 +82,8 @@ class EthernetRelay extends IPSModule
 			$cmd = "DOI";
 		}
 		
-		SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
-		SendCmd(chr(91), "status");
+		$this->SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
+		$this->SendCmd(chr(91), "status");
 		
 		return true;
 	}
@@ -91,7 +91,7 @@ class EthernetRelay extends IPSModule
 	
 	public function SendCommand(string $Command) {
 		
-		SendCmd($Command, "switch");
+		$this->SendCmd($Command, "switch");
 		
 	}
 	
