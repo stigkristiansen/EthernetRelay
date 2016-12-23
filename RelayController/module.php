@@ -37,7 +37,7 @@ class EthernetRelay extends IPSModule
 			try {
 				$incomingData = json_decode($JSONString);
 				$incomingBuffer = utf8_decode($incomingData->Buffer);
-				$convertedIncoming = intval($incomingBuffer, 16);
+				$convertedIncoming = intval($incomingData->Buffer, 16);
 				
 				$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 				
