@@ -23,8 +23,15 @@ class EthernetRelay extends IPSModule
 		$this->RegisterVariableBoolean("relay1", "Relay #1", "~Lock");
 		$this->RegisterVariableBoolean("relay2", "Relay #2", "~Lock");
 		
+		//$this->RegisterVariableBoolean("command", "Command", "", 99);
+		
         IPS_SetHidden($this->GetIDForIdent('lastsendt'), true);
 		IPS_SetHidden($this->GetIDForIdent('lastreceived'), true);
+		//IPS_SetHidden($this->GetIDForIdent('command'), true);
+		
+		$ident="checkrelaystatus";
+		$name="Check Relay Status";
+		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nrequire_once(IPS_GetKernelDirEx().\"scripts/__ipsmodule.inc.php\");\nrequire_once(\"../modules/EthernetRelay/RelayController/module.php\");\n(new EthernetRelay(".$this->InstanceID."))->CheckRelayStatus();\n?>");	
    
     }
 
@@ -36,18 +43,13 @@ class EthernetRelay extends IPSModule
 			
 			try {
 				$incomingData = json_decode($JSONString);
-				//$incomingBuffer = utf8_decode($incomingData->Buffer);
+				
 				$incoming = ord($incomingData->Buffer);
 				
 				$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 				
 				$log->LogMessage("Received: ".intval($incoming, 16));
 				
-				$idRelay1 = $this->GetIDForIdent("relay1");
-				$idRelay2 = $this->GetIDForIdent("relay2");
-				SetValueBoolean($idRelay1, $incoming & 0x01);
-				SetValueBoolean($idRelay2, $incoming & 0x02);
-											
 				$Id = $this->GetIDForIdent("lastreceived");
 				SetValueString($Id, $incoming);
 				$log->LogMessage("Updated variable LastReceived");
@@ -60,12 +62,38 @@ class EthernetRelay extends IPSModule
 			
 			} finally {
 				$this->Unlock("InsideReceive"); 
+					
 			}
 		} else 
 			$log->LogMessageError("Already locked for receiving");
     }
 	
+	public function UpdateRelayStatus() {
+		
+		SendCmd(chr(91), "status");
+		
+		return true;
+	}
+	
+	public function Switch(int $RelayNumber, boolean $Status) {
+		if(status) {
+			$cmd = "DOA"
+		} else {
+			$cmd = "DOI"
+		}
+		
+		SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
+		SendCmd(chr(91), "status");
+	}
+	
+	
 	public function SendCommand(string $Command) {
+		
+		SendCmd($Command, "switch");
+		
+	}
+	
+	private function SendCmd($Command, $CommandType) {
 		if ($this->Lock("InsideSendCommand")) { 
 		
 			if(!$this->EvaluateParent())
@@ -74,32 +102,65 @@ class EthernetRelay extends IPSModule
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 
 			$log->LogMessage("Sending command: ".$Command);
-			
-			$password = $this->ReadPropertyString("password");
-			$buffer = ":".$Command.(strlen($password)>0?",".$password:"");
-					
+						
+			if($CommandType=='switch') {
+				$password = $this->ReadPropertyString("password");
+				$buffer = $Command.(strlen($password)>0?",".$password:"");
+			} else
+				$buffer = $Command;
+								
 			try{
+				$time = time();
+				
 				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 				
-				$Id = $this->GetIDForIdent("lastsendt");
-				SetValueString($Id, $buffer);
+				$id = $this->GetIDForIdent("lastsendt");
+				SetValueString($id, $buffer);
 				$log->LogMessage("Updated variable LastSendt");
 				
-				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
+				//$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
+				
+				if($CommandType=="status") {
+					$dataReceived = false;
+					$id = $this->GetIDForIdent("lastreceived");
+					for($count=0;$count<5;$count++) {
+						$data = IPS_GetValue($id);
+						if($data[VariableUpdated]>= $time) {
+							$dataReceived = true;
+							break;
+						}
+						IPS_Sleep(500);
+					}
+
+					if($dataReceived) {
+						$log->LogMessage("Inside SendCmd: Data was recieived");
+						
+						$receivedData = GetValueString($id);
+											
+						//$idRelay1 = $this->GetIDForIdent("relay1");
+						//$idRelay2 = $this->GetIDForIdent("relay2");
+						//SetValueBoolean($idRelay1, $incoming & 0x01);
+						//SetValueBoolean($idRelay2, $incoming & 0x02);
+					} else
+						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
+				}
 
 			} catch (Exeption $ex) {
 				$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
-				
 				return false;
+			
 			} finally {
 				$this->Unlock("InsideSendCommand"); 
+				 
 			}
 
+			
 			return true;
 			
-		} else
+		} else {
 			$log->LogMessageError("Already locked for sending. Please retry...");
-
+				
+		}
 	}
     
 	private function Lock($ident){
