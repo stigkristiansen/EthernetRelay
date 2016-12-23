@@ -45,11 +45,11 @@ class EthernetRelay extends IPSModule
 				
 				$idRelay1 = $this->GetIDForIdent("relay1");
 				$idRelay2 = $this->GetIDForIdent("relay2");
-				SetValueBoolean($idRelay1, $incoming && 0x01);
-				SetValueBoolean($idRelay2, $incoming && 0x02);
+				SetValueBoolean($idRelay1, $incoming & 0x01);
+				SetValueBoolean($idRelay2, $incoming & 0x02);
 											
 				$Id = $this->GetIDForIdent("lastreceived");
-				SetValueString($Id, $convertedIncoming);
+				SetValueString($Id, $incoming);
 				$log->LogMessage("Updated variable LastReceived");
 				
 				return true;
