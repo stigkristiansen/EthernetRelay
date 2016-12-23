@@ -52,8 +52,8 @@ class EthernetRelay extends IPSModule
 		$log->LogMessage("Sending command: ".$Command);
 		
 		$password = $this->ReadPropertyString("password");
-		$buffer = ":".$Command.(strlen($password)>0?",".$password:"");
-				
+		//$buffer = ":".$Command.(strlen($password)>0?",".$password:"");
+		$buffer = $Command;		
 		try{
 			$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 
