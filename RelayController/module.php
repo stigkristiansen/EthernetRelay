@@ -21,7 +21,7 @@ class EthernetRelay extends IPSModule
 		$this->RegisterVariableString("lastreceived", "LastReceived");
         
 		$this->RegisterVariableBoolean("relay1", "Relay #1", "~Lock");
-		$this->RegisterVariableBoolean("relay2", "Relay #2", "~Lock";
+		$this->RegisterVariableBoolean("relay2", "Relay #2", "~Lock");
 		
         IPS_SetHidden($this->GetIDForIdent('lastsendt'), true);
 		IPS_SetHidden($this->GetIDForIdent('lastreceived'), true);
