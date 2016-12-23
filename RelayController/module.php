@@ -2,7 +2,7 @@
 
 require_once(__DIR__ . "/../Logging.php");
 
-class GlobalCacheIR extends IPSModule
+class EthernetRelay extends IPSModule
 {
     
     public function Create()
