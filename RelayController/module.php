@@ -11,6 +11,7 @@ class EthernetRelay extends IPSModule
         $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
         
         $this->RegisterPropertyBoolean ("log", false );
+	$this->RegisterPropertyBoolean ("password", "" );
    }
 
     public function ApplyChanges(){
@@ -49,7 +50,10 @@ class EthernetRelay extends IPSModule
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 
 		$log->LogMessage("Sending command: ".$Command);
-		$buffer = ":". $Command;
+		
+		$password = $this->ReadPropertyString("password");
+		$buffer = ":".$Command.(len($password)>0?",".$password:"");
+				
 		try{
 			$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 
@@ -61,7 +65,7 @@ class EthernetRelay extends IPSModule
 			} 
 
 		} catch (Exeption $ex) {
-			$log->LogMessageError("Failed to send the command ".$Device.":".$Command." . Error: ".$ex->getMessage());
+			$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
 
 			return false;
 		}
