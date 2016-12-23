@@ -126,7 +126,7 @@ class EthernetRelay extends IPSModule
 					$dataReceived = false;
 					$id = $this->GetIDForIdent("lastreceived");
 					for($count=0;$count<5;$count++) {
-						$data = IPS_GetValue($id);
+						$data = IPS_GetObject($id);
 						if($data[VariableUpdated]>= $time) {
 							$dataReceived = true;
 							break;
