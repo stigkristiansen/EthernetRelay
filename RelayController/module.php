@@ -49,7 +49,8 @@ class EthernetRelay extends IPSModule
 				
 				return true;
 			
-			} catch {
+			} catch (Exeption $ex){
+				$log->LogMessageError("Failed receiving data. Error: ".$ex->getMessage());
 				return false;
 			
 			} finally {
