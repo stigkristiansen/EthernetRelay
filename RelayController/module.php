@@ -137,12 +137,12 @@ class EthernetRelay extends IPSModule
 					if($dataReceived) {
 						$log->LogMessage("Inside SendCmd: Data was recieived");
 						
-						$receivedData = GetValueString($id);
+						$receivedData = intval(GetValueString($id));
 											
-						//$idRelay1 = $this->GetIDForIdent("relay1");
-						//$idRelay2 = $this->GetIDForIdent("relay2");
-						//SetValueBoolean($idRelay1, $incoming & 0x01);
-						//SetValueBoolean($idRelay2, $incoming & 0x02);
+						$idRelay1 = $this->GetIDForIdent("relay1");
+						$idRelay2 = $this->GetIDForIdent("relay2");
+						SetValueBoolean($idRelay1, $receivedData & 0x01);
+						SetValueBoolean($idRelay2, $receivedData & 0x02);
 					} else
 						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
 				}
