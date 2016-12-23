@@ -36,17 +36,17 @@ class EthernetRelay extends IPSModule
 			
 			try {
 				$incomingData = json_decode($JSONString);
-				$incomingBuffer = utf8_decode($incomingData->Buffer);
-				$convertedIncoming = intval($incomingData->Buffer, 16);
+				//$incomingBuffer = utf8_decode($incomingData->Buffer);
+				$incoming = ord($incomingData->Buffer);
 				
 				$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 				
-				$log->LogMessage("Received: ".$convertedIncoming);
+				$log->LogMessage("Received: ".intval($incoming, 16));
 				
 				$idRelay1 = $this->GetIDForIdent("relay1");
 				$idRelay2 = $this->GetIDForIdent("relay2");
-				SetValueBoolean($idRelay1, $convertedIncoming && 0x01);
-				SetValueBoolean($idRelay2, $convertedIncoming && 0x02);
+				SetValueBoolean($idRelay1, $incoming && 0x01);
+				SetValueBoolean($idRelay2, $incoming && 0x02);
 											
 				$Id = $this->GetIDForIdent("lastreceived");
 				SetValueString($Id, $convertedIncoming);
