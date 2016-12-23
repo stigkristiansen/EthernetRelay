@@ -26,21 +26,25 @@ class EthernetRelay extends IPSModule
     }
 
     public function ReceiveData($JSONString) {
-		$incomingData = json_decode($JSONString);
-		$incomingBuffer = utf8_decode($incomingData->Buffer);
-		
-		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
-		$log->LogMessage("Received: ".$incomingBuffer);
-		
-		if ($this->Lock("LastReceivedLock")) { 
-             	    $Id = $this->GetIDForIdent("LastReceived");
-		    SetValueString($Id, $incomingBuffer);
-		    $log->LogMessage("Updated variable LastReceived");
-		    $this->Unlock("LastReceivedLock"); 
-		    
-        } 
-		return true;
-		return true;
+		if ($this->Lock("InsideReceive")) { 
+			$incomingData = json_decode($JSONString);
+			$incomingBuffer = utf8_decode($incomingData->Buffer);
+			
+			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+			$log->LogMessage("Received: ".$incomingBuffer);
+			
+			if ($this->Lock("LastReceivedLock")) { 
+						$Id = $this->GetIDForIdent("LastReceived");
+				SetValueString($Id, $incomingBuffer);
+				$log->LogMessage("Updated variable LastReceived");
+				$this->Unlock("LastReceivedLock"); 
+				
+			} 
+			
+			$this->Unlock("InsideReceive"); 
+			return true;
+		else 
+			$log->LogMessageError("Already locked for receiving");
     }
 	
 	public function SendCommand(string $Command) {
