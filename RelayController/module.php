@@ -17,32 +17,44 @@ class EthernetRelay extends IPSModule
     public function ApplyChanges(){
         parent::ApplyChanges();
         
-        $this->RegisterVariableString("LastSendt", "LastSendt");
-		$this->RegisterVariableString("LastReceived", "LastReceived");
+        $this->RegisterVariableString("lastsendt", "LastSendt");
+		$this->RegisterVariableString("lastreceived", "LastReceived");
         
-        IPS_SetHidden($this->GetIDForIdent('LastSendt'), true);
-		IPS_SetHidden($this->GetIDForIdent('LastReceived'), true);
+		$this->RegisterVariableBoolean("relay1", "Relay #1", "~Lock");
+		$this->RegisterVariableBoolean("relay2", "Relay #2", "~Lock";
+		
+        IPS_SetHidden($this->GetIDForIdent('lastsendt'), true);
+		IPS_SetHidden($this->GetIDForIdent('lastreceived'), true);
    
     }
 
     public function ReceiveData($JSONString) {
+		
 		if ($this->Lock("InsideReceive")) { 
-			$incomingData = json_decode($JSONString);
-			$incomingBuffer = utf8_decode($incomingData->Buffer);
-			
+
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
-			$log->LogMessage("Received: ".$incomingBuffer);
 			
-			if ($this->Lock("LastReceivedLock")) { 
-						$Id = $this->GetIDForIdent("LastReceived");
-				SetValueString($Id, $incomingBuffer);
-				$log->LogMessage("Updated variable LastReceived");
-				$this->Unlock("LastReceivedLock"); 
+			try {
+				$incomingData = json_decode($JSONString);
+				$incomingBuffer = utf8_decode($incomingData->Buffer);
+				$convertedIncoming = intval($incomingBuffer);
 				
-			} 
+				$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+				
+				$log->LogMessage("Received: ".$convertedIncoming);
+											
+				$Id = $this->GetIDForIdent("lastreceived");
+				SetValueString($Id, $convertedIncoming);
+				$log->LogMessage("Updated variable LastReceived");
+				
+				return true;
 			
-			$this->Unlock("InsideReceive"); 
-			return true;
+			} catch {
+				return false;
+			
+			} finally {
+				$this->Unlock("InsideReceive"); 
+			}
 		} else 
 			$log->LogMessageError("Already locked for receiving");
     }
@@ -62,15 +74,12 @@ class EthernetRelay extends IPSModule
 					
 			try{
 				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
-
-				if ($this->Lock("LastSendtLock")) { 
-					$Id = $this->GetIDForIdent("LastSendt");
-					SetValueString($Id, $buffer);
-					$log->LogMessage("Updated variable LastSendt");
-					$this->Unlock("LastSendtLock"); 
-				}
 				
-			$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
+				$Id = $this->GetIDForIdent("lastsendt");
+				SetValueString($Id, $buffer);
+				$log->LogMessage("Updated variable LastSendt");
+				
+				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
 
 			} catch (Exeption $ex) {
 				$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
