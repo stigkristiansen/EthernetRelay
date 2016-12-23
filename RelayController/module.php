@@ -17,8 +17,10 @@ class EthernetRelay extends IPSModule
         parent::ApplyChanges();
         
         $this->RegisterVariableString("LastSendt", "LastSendt");
+	$this->RegisterVariableString("LastReceived", "LastReceived");
         
         IPS_SetHidden($this->GetIDForIdent('LastSendt'), true);
+	IPS_SetHidden($this->GetIDForIdent('LastReceived'), true);
    
     }
 
