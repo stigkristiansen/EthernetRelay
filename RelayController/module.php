@@ -40,13 +40,13 @@ class EthernetRelay extends IPSModule
 		return true;
     }
 	
-	public function SendCommand($Device, $Command) {
+	public function SendCommand(string $Command) {
 		if(!$this->EvaluateParent())
 			return false;
 		
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 
-		$log->LogMessage("Sending command: ".$Device.":".$Command);
+		$log->LogMessage("Sending command: ".$Command);
 		$buffer = ":". $Command;
 		try{
 			$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
