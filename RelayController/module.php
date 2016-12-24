@@ -77,21 +77,36 @@ class EthernetRelay extends IPSModule
 		
 		if($authenticted)
 			$result = $this->SendCmd(chr(91), "status");
+		else
+			$result = false;
 		
 		return $result;
 	}
 	
 	public function SwitchMode(int $RelayNumber, bool $Status) {
-		if($Status) {
+		/*if($Status) {
 			$cmd = "DOA";
+			$cmd = chr(32);
 		} else {
 			$cmd = "DOI";
+			$cmd = chr(33);
+		}
+		*/
+		$password = $this->ReadPropertyString("password");
+		$authenticted = true;
+		
+		if(strlen($password)>0) {
+			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
 		}
 		
-		$this->SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
-		$this->SendCmd(chr(91), "status");
-		
-		return true;
+		if($authenticted) {
+			$result = $this->SendCmd($cmd.chr($RelayNumber).chr(0), "switch");
+			if($result)
+				$result = $this->SendCmd(chr(91), "status");
+		}
+		//$this->SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
+			
+		return $result;
 	}
 	
 	
@@ -110,12 +125,12 @@ class EthernetRelay extends IPSModule
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 		
 						
-			if($CommandType=='switch') {
+		/*	if($CommandType=='switch') {
 				$password = $this->ReadPropertyString("password");
 				$log->LogMessage("Password: ".$password);
 				$buffer = $Command.(strlen($password)>0?",".$password:"");
 				$log->LogMessage("Command: ".$buffer);
-			} else
+			} else */
 				$buffer = $Command;
 			
 			$log->LogMessage("Sending command: ".$Command);
@@ -129,9 +144,7 @@ class EthernetRelay extends IPSModule
 				SetValueString($id, $buffer);
 				$log->LogMessage("Updated variable LastSendt");
 				
-				//$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
-				
-				if($CommandType=="status"||$CommandType=='authenticate') {
+				//if($CommandType=="status"||$CommandType=='authenticate') {
 					$dataReceived = false;
 					$id = $this->GetIDForIdent("lastreceived");
 					for($count=0;$count<5;$count++) {
@@ -163,9 +176,16 @@ class EthernetRelay extends IPSModule
 							else
 								return false;
 						}
+						
+						if($CommandType=='switch') {
+							if($receivedData==0)
+								return true;
+							else
+								return false;
+						}
 					} else
 						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
-				}
+				//}
 				
 				return true;
 
