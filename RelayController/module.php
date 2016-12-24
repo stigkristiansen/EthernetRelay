@@ -23,16 +23,13 @@ class EthernetRelay extends IPSModule
 		$this->RegisterVariableBoolean("relay1", "Relay #1", "~Lock");
 		$this->RegisterVariableBoolean("relay2", "Relay #2", "~Lock");
 		
-		//$this->RegisterVariableBoolean("command", "Command", "", 99);
-		
         IPS_SetHidden($this->GetIDForIdent('lastsendt'), true);
 		IPS_SetHidden($this->GetIDForIdent('lastreceived'), true);
-		//IPS_SetHidden($this->GetIDForIdent('command'), true);
-		
+				
 		$ident="updaterelaystatus";
 		$name="Update Relay Status";
 		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nUpdateRelayStatus(".$this->InstanceID.");\n?>");	
-		IPS_SetScriptTimer($id, 5);
+		IPS_SetScriptTimer($id, 10);
    
     }
 
@@ -71,9 +68,17 @@ class EthernetRelay extends IPSModule
 	
 	public function UpdateRelayStatus() {
 		
-		$this->SendCmd(chr(91), "status");
+		$password = $this->ReadPropertyString("password");
+		$authenticted = true;
 		
-		return true;
+		if(strlen($password)>0) {
+			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
+		}
+		
+		if($authenticted)
+			$result = $this->SendCmd(chr(91), "status");
+		
+		return $result;
 	}
 	
 	public function SwitchMode(int $RelayNumber, bool $Status) {
@@ -148,10 +153,21 @@ class EthernetRelay extends IPSModule
 							$idRelay2 = $this->GetIDForIdent("relay2");
 							SetValueBoolean($idRelay1, $receivedData & 0x01);
 							SetValueBoolean($idRelay2, $receivedData & 0x02);
+							
+							return true;
+						}
+						
+						if($CommandType=='authenticate') {
+							if($receivedData==1)
+								return true;
+							else
+								return false;
 						}
 					} else
 						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
 				}
+				
+				return true;
 
 			} catch (Exeption $ex) {
 				$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
@@ -161,9 +177,6 @@ class EthernetRelay extends IPSModule
 				$this->Unlock("InsideSendCommand"); 
 				 
 			}
-
-			
-			return true;
 			
 		} else {
 			$log->LogMessageError("Already locked for sending. Please retry...");
