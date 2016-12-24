@@ -46,11 +46,11 @@ class EthernetRelay extends IPSModule
 				
 				$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 				
-				$log->LogMessage("Received: ".intval($incoming, 16));
+				$log->LogMessage("ReceiveData - Received: ".intval($incoming, 16));
 				
 				$Id = $this->GetIDForIdent("lastreceived");
 				SetValueString($Id, $incoming);
-				$log->LogMessage("Updated variable LastReceived");
+				$log->LogMessage("ReceiveData - Updated variable LastReceived");
 				
 				return true;
 			
@@ -63,7 +63,7 @@ class EthernetRelay extends IPSModule
 					
 			}
 		} else 
-			$log->LogMessageError("Already locked for receiving");
+			$log->LogMessageError("ReceiveData - Already locked for receiving");
     }
 	
 	public function UpdateRelayStatus() {
@@ -123,11 +123,10 @@ class EthernetRelay extends IPSModule
 				return false;
 			
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
-		
-						
+								
 			$buffer = $Command;
 			
-			$log->LogMessage("Sending command: ".$Command);
+			$log->LogMessage("SendCmd - Sending command: ".$CommandType);
 								
 			try{
 				$time = time();
@@ -136,55 +135,54 @@ class EthernetRelay extends IPSModule
 				
 				$id = $this->GetIDForIdent("lastsendt");
 				SetValueString($id, $buffer);
-				$log->LogMessage("Updated variable LastSendt");
+				$log->LogMessage("SendCmd - Updated variable LastSendt");
 				
+				$log->LogMessage("SendCmd - Waiting for data received...");
 				
-					$dataReceived = false;
-					$id = $this->GetIDForIdent("lastreceived");
-					for($count=0;$count<5;$count++) {
-						$data = IPS_GetVariable($id);
-						if($data['VariableUpdated']>= $time) {
-							$dataReceived = true;
-							break;
-						}
-						IPS_Sleep(500);
+				$dataReceived = false;
+				$id = $this->GetIDForIdent("lastreceived");
+				for($count=0;$count<5;$count++) {
+					$data = IPS_GetVariable($id);
+					if($data['VariableUpdated']>= $time) {
+						$dataReceived = true;
+						break;
 					}
+					IPS_Sleep(500);
+				}
 
-					if($dataReceived) {
-												
-						$receivedData = intval(GetValueString($id));
-						
-						$log->LogMessage("Inside SendCmd. Data was recieived: ".$receivedData);
+				if($dataReceived) {
 											
-						$log->LogMessage("Inside SendCmd. Command: ".$CommandType);
+					$receivedData = intval(GetValueString($id));
+					
+					$log->LogMessage("SendCmd - Data was recieived: ".$receivedData);
+														
+					if($CommandType=="status") {
+						$idRelay1 = $this->GetIDForIdent("relay1");
+						$idRelay2 = $this->GetIDForIdent("relay2");
+						SetValueBoolean($idRelay1, $receivedData & 0x01);
+						SetValueBoolean($idRelay2, $receivedData & 0x02);
 						
-						if($CommandType=="status") {
-							$idRelay1 = $this->GetIDForIdent("relay1");
-							$idRelay2 = $this->GetIDForIdent("relay2");
-							SetValueBoolean($idRelay1, $receivedData & 0x01);
-							SetValueBoolean($idRelay2, $receivedData & 0x02);
-							
+						return true;
+					}
+					
+					if($CommandType=='authenticate') {
+						if($receivedData==1)
 							return true;
-						}
-						
-						if($CommandType=='authenticate') {
-							if($receivedData==1)
-								return true;
-							else
-								return false;
-						}
-						
-						if($CommandType=='switch') {
-							if($receivedData==0)
-								return true;
-							else
-								return false;
-						}
-					} else
-						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
+						else
+							return false;
+					}
+					
+					if($CommandType=='switch') {
+						if($receivedData==0)
+							return true;
+						else
+							return false;
+					}
+				} else
+					$log->LogMessageError("SendCmd - Did not receive expected data!");
+			
 				
-				
-				return true;
+				return false;
 
 			} catch (Exeption $ex) {
 				$log->LogMessageError("Failed to send the command ".$Command." . Error: ".$ex->getMessage());
