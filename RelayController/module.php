@@ -84,14 +84,14 @@ class EthernetRelay extends IPSModule
 	}
 	
 	public function SwitchMode(int $RelayNumber, bool $Status) {
-		/*if($Status) {
+		if($Status) {
 			$cmd = "DOA";
 			$cmd = chr(32);
 		} else {
 			$cmd = "DOI";
 			$cmd = chr(33);
 		}
-		*/
+		
 		$password = $this->ReadPropertyString("password");
 		$authenticted = true;
 		
