@@ -106,7 +106,9 @@ class EthernetRelay extends IPSModule
 						
 			if($CommandType=='switch') {
 				$password = $this->ReadPropertyString("password");
+				$log->LogMessage("Password: ".$password);
 				$buffer = $Command.(strlen($password)>0?",".$password:"");
+				$log->LogMessage("Command: ".$buffer);
 			} else
 				$buffer = $Command;
 			
