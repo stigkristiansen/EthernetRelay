@@ -145,7 +145,7 @@ class EthernetRelay extends IPSModule
 				for($count=1;$count<5;$count++) {
 					$receivedTime = GetValueFloat($id);
 					$log->LogMessage("SendCmd - LastReceived update time is ".$receivedTime);
-					if(receivedTime>$time) {
+					if($receivedTime>$time) {
 						$dataReceived = true;
 						break;
 					}
