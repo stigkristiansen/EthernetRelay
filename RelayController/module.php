@@ -102,14 +102,15 @@ class EthernetRelay extends IPSModule
 				return false;
 			
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
-
-			$log->LogMessage("Sending command: ".$Command);
+		
 						
 			if($CommandType=='switch') {
 				$password = $this->ReadPropertyString("password");
 				$buffer = $Command.(strlen($password)>0?",".$password:"");
 			} else
 				$buffer = $Command;
+			
+			$log->LogMessage("Sending command: ".$Command);
 								
 			try{
 				$time = time();
@@ -122,7 +123,7 @@ class EthernetRelay extends IPSModule
 				
 				//$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => chr(91))));
 				
-				if($CommandType=="status") {
+				if($CommandType=="status"||$CommandType=='authenticate') {
 					$dataReceived = false;
 					$id = $this->GetIDForIdent("lastreceived");
 					for($count=0;$count<5;$count++) {
@@ -139,10 +140,12 @@ class EthernetRelay extends IPSModule
 						
 						$receivedData = intval(GetValueString($id));
 											
-						$idRelay1 = $this->GetIDForIdent("relay1");
-						$idRelay2 = $this->GetIDForIdent("relay2");
-						SetValueBoolean($idRelay1, $receivedData & 0x01);
-						SetValueBoolean($idRelay2, $receivedData & 0x02);
+						if($CommandType=="status") {
+							$idRelay1 = $this->GetIDForIdent("relay1");
+							$idRelay2 = $this->GetIDForIdent("relay2");
+							SetValueBoolean($idRelay1, $receivedData & 0x01);
+							SetValueBoolean($idRelay2, $receivedData & 0x02);
+						}
 					} else
 						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
 				}
