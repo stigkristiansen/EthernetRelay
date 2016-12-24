@@ -149,7 +149,7 @@ class EthernetRelay extends IPSModule
 						$dataReceived = true;
 						break;
 					}
-					IPS_Sleep(500);
+					IPS_Sleep(200);
 				}
 
 				if($dataReceived) {
