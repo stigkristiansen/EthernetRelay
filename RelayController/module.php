@@ -101,10 +101,10 @@ class EthernetRelay extends IPSModule
 		
 		if($authenticted) {
 			$result = $this->SendCmd($cmd.chr($RelayNumber).chr(0), "switch");
-			if($result)
-				$result = $this->SendCmd(chr(91), "status");
+			$result = $this->SendCmd(chr(91), "status");
 		}
-		//$this->SendCmd(":".$cmd.",".$RelayNumber.",0", "switch");
+		
+		
 			
 		return $result;
 	}
