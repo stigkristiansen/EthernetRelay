@@ -36,6 +36,7 @@ class EthernetRelay extends IPSModule
     public function ReceiveData($JSONString) {
 		
 		if ($this->Lock("InsideReceive")) { 
+			$log->LogMessage("ReceiveData - microtime: ".microtime(true));
 			IPS_Sleep(1000);
 
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
@@ -85,13 +86,11 @@ class EthernetRelay extends IPSModule
 	}
 	
 	public function SwitchMode(int $RelayNumber, bool $Status) {
-		if($Status) {
-			$cmd = "DOA";
+		if($Status)
 			$cmd = chr(32);
-		} else {
-			$cmd = "DOI";
+		else 
 			$cmd = chr(33);
-		}
+
 		
 		$password = $this->ReadPropertyString("password");
 		$authenticted = true;
@@ -102,10 +101,8 @@ class EthernetRelay extends IPSModule
 		
 		if($authenticted) {
 			$result = $this->SendCmd($cmd.chr($RelayNumber).chr(0), "switch");
-			$result = $this->SendCmd(chr(91), "status");
+			$this->SendCmd(chr(91), "status");
 		}
-		
-		
 			
 		return $result;
 	}
@@ -133,7 +130,7 @@ class EthernetRelay extends IPSModule
 				$time = time();
 				
 				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
-				
+				$log->LogMessage("SendCmd - microtime: ".microtime(true));
 				$id = $this->GetIDForIdent("lastsendt");
 				SetValueString($id, $buffer);
 				$log->LogMessage("SendCmd - Updated variable LastSendt");
