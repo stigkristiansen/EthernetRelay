@@ -28,7 +28,7 @@ class EthernetRelay extends IPSModule
 				
 		$ident="updaterelaystatus";
 		$name="Update Relay Status";
-		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nUpdateRelayStatus(".$this->InstanceID.");\n?>");	
+		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nETHR_UpdateRelayStatus(".$this->InstanceID.");\n?>");	
 		IPS_SetScriptTimer($id, 10);
    
     }
@@ -125,13 +125,7 @@ class EthernetRelay extends IPSModule
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 		
 						
-		/*	if($CommandType=='switch') {
-				$password = $this->ReadPropertyString("password");
-				$log->LogMessage("Password: ".$password);
-				$buffer = $Command.(strlen($password)>0?",".$password:"");
-				$log->LogMessage("Command: ".$buffer);
-			} else */
-				$buffer = $Command;
+			$buffer = $Command;
 			
 			$log->LogMessage("Sending command: ".$Command);
 								
@@ -144,7 +138,7 @@ class EthernetRelay extends IPSModule
 				SetValueString($id, $buffer);
 				$log->LogMessage("Updated variable LastSendt");
 				
-				//if($CommandType=="status"||$CommandType=='authenticate') {
+				
 					$dataReceived = false;
 					$id = $this->GetIDForIdent("lastreceived");
 					for($count=0;$count<5;$count++) {
@@ -157,10 +151,13 @@ class EthernetRelay extends IPSModule
 					}
 
 					if($dataReceived) {
-						$log->LogMessage("Inside SendCmd: Data was recieived");
-						
+												
 						$receivedData = intval(GetValueString($id));
+						
+						$log->LogMessage("Inside SendCmd. Data was recieived: ".$receivedData);
 											
+						$log->LogMessage("Inside SendCmd. Command: ".$CommandType);
+						
 						if($CommandType=="status") {
 							$idRelay1 = $this->GetIDForIdent("relay1");
 							$idRelay2 = $this->GetIDForIdent("relay2");
@@ -185,7 +182,7 @@ class EthernetRelay extends IPSModule
 						}
 					} else
 						$log->LogMessageError("Inside SendCmd: Did not receive expected data!");
-				//}
+				
 				
 				return true;
 
