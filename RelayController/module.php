@@ -11,7 +11,7 @@ class EthernetRelay extends IPSModule
         $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
         
         $this->RegisterPropertyBoolean ("log", false );
-		$this->RegisterPropertyBoolean ("password", "" );
+		$this->RegisterPropertyString ("password", "" );
    }
 
     public function ApplyChanges(){
