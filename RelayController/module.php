@@ -137,13 +137,15 @@ class EthernetRelay extends IPSModule
 				SetValueString($id, $buffer);
 				$log->LogMessage("SendCmd - Updated variable LastSendt");
 				
+				$log->LogMessage("SendCmd - Time is ".$time);
 				$log->LogMessage("SendCmd - Waiting for data received...");
 				
 				$dataReceived = false;
 				$id = $this->GetIDForIdent("lastreceived");
-				for($count=0;$count<5;$count++) {
+				for($count=1;$count<5;$count++) {
 					$data = IPS_GetVariable($id);
-					if($data['VariableUpdated']>= $time) {
+					$log->LogMessage("SendCmd - LastReceived update time is ".$data['VariableUpdated']);
+					if($data['VariableUpdated']> $time) {
 						$dataReceived = true;
 						break;
 					}
