@@ -17,19 +17,19 @@ class EthernetRelay extends IPSModule
     public function ApplyChanges(){
         parent::ApplyChanges();
         
-        $this->RegisterVariableString("lastsendt", "LastSendt");
-		$this->RegisterVariableString("lastreceived", "LastReceived");
+        $this->RegisterVariableInteger("lastreceived", "Last Received");
+		$this->RegisterVariableFloat("lastreceivedtime", "Last Received Time");
         
 		$this->RegisterVariableBoolean("relay1", "Relay #1", "~Lock");
 		$this->RegisterVariableBoolean("relay2", "Relay #2", "~Lock");
 		
-        IPS_SetHidden($this->GetIDForIdent('lastsendt'), true);
+        IPS_SetHidden($this->GetIDForIdent('lastreceivedtime'), true);
 		IPS_SetHidden($this->GetIDForIdent('lastreceived'), true);
 				
 		$ident="updaterelaystatus";
 		$name="Update Relay Status";
 		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nETHR_UpdateRelayStatus(".$this->InstanceID.");\n?>");	
-		IPS_SetScriptTimer($id, 10);
+		IPS_SetScriptTimer($id, 60);
    
     }
 
@@ -39,7 +39,7 @@ class EthernetRelay extends IPSModule
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 			$log->LogMessage("ReceiveData - microtime: ".microtime(true));
 			
-			IPS_Sleep(1000);
+			//IPS_Sleep(1000);
 			try {
 				$incomingData = json_decode($JSONString);
 				
@@ -49,8 +49,11 @@ class EthernetRelay extends IPSModule
 				
 				//$log->LogMessage("ReceiveData - Received: ".intval($incoming, 16));
 				
-				$Id = $this->GetIDForIdent("lastreceived");
-				SetValueString($Id, $incoming);
+				$id = $this->GetIDForIdent("lastreceived");
+				SetValueInteger($id, $incoming);
+				$id = $this->GetIDForIdent("lastreceivedtime");
+				SetValueFloat($id, microtime(true));
+				
 				//$log->LogMessage("ReceiveData - Updated variable LastReceived");
 				
 				return true;
@@ -138,11 +141,11 @@ class EthernetRelay extends IPSModule
 				$log->LogMessage("SendCmd - Waiting for data received...");
 				
 				$dataReceived = false;
-				$id = $this->GetIDForIdent("lastreceived");
+				$id = $this->GetIDForIdent("lastreceivedtime");
 				for($count=1;$count<5;$count++) {
-					$data = IPS_GetVariable($id);
+					$receivedTime = GetValueFloat($id);
 					$log->LogMessage("SendCmd - LastReceived update time is ".$data['VariableUpdated']);
-					if($data['VariableUpdated']> $time) {
+					if(receivedTime>$time) {
 						$dataReceived = true;
 						break;
 					}
@@ -150,8 +153,8 @@ class EthernetRelay extends IPSModule
 				}
 
 				if($dataReceived) {
-											
-					$receivedData = intval(GetValueString($id));
+					$id = $this->GetIDForIdent("lastreceived");
+					$receivedData = GetValueInteger($id);
 					
 					$log->LogMessage("SendCmd - Data was recieived: ".$receivedData);
 														
