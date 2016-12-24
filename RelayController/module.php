@@ -29,9 +29,10 @@ class EthernetRelay extends IPSModule
 		IPS_SetHidden($this->GetIDForIdent('lastreceived'), true);
 		//IPS_SetHidden($this->GetIDForIdent('command'), true);
 		
-		$ident="checkrelaystatus";
-		$name="Check Relay Status";
-		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nrequire_once(IPS_GetKernelDirEx().\"scripts/__ipsmodule.inc.php\");\nrequire_once(\"../modules/EthernetRelay/RelayController/module.php\");\n(new EthernetRelay(".$this->InstanceID."))->UpdateRelayStatus();\n?>");	
+		$ident="updaterelaystatus";
+		$name="Update Relay Status";
+		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nUpdateRelayStatus(".$this->InstanceID.");\n?>");	
+		IPS_SetScriptTimer($id, 5);
    
     }
 
