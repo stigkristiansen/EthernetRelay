@@ -46,11 +46,11 @@ class EthernetRelay extends IPSModule
 				
 				$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 				
-				$log->LogMessage("ReceiveData - Received: ".intval($incoming, 16));
+				//$log->LogMessage("ReceiveData - Received: ".intval($incoming, 16));
 				
 				$Id = $this->GetIDForIdent("lastreceived");
 				SetValueString($Id, $incoming);
-				$log->LogMessage("ReceiveData - Updated variable LastReceived");
+				//$log->LogMessage("ReceiveData - Updated variable LastReceived");
 				
 				return true;
 			
@@ -203,11 +203,11 @@ class EthernetRelay extends IPSModule
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 		for ($i = 0; $i < 100; $i++){
 			if (IPS_SemaphoreEnter("ETHR_" . (string) $this->InstanceID . (string) $ident, 1)){
-				$log->LogMessage($ident." is locked"); 
+				//$log->LogMessage($ident." is locked"); 
 				return true;
 			} else {
 				if($i==0)
-					$log->LogMessage("Waiting for lock...");
+					//$log->LogMessage("Waiting for lock...");
 				IPS_Sleep(mt_rand(1, 5));
 			}
 		}
@@ -220,7 +220,7 @@ class EthernetRelay extends IPSModule
     {
         IPS_SemaphoreLeave("ETHR_" . (string) $this->InstanceID . (string) $ident);
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
-		$log->LogMessage($ident." is unlocked");
+		//$log->LogMessage($ident." is unlocked");
     }
 	
 	private function HasActiveParent(){
