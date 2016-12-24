@@ -36,11 +36,10 @@ class EthernetRelay extends IPSModule
     public function ReceiveData($JSONString) {
 		
 		if ($this->Lock("InsideReceive")) { 
-			$log->LogMessage("ReceiveData - microtime: ".microtime(true));
-			IPS_Sleep(1000);
-
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+			$log->LogMessage("ReceiveData - microtime: ".microtime(true));
 			
+			IPS_Sleep(1000);
 			try {
 				$incomingData = json_decode($JSONString);
 				
