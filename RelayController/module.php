@@ -36,6 +36,7 @@ class EthernetRelay extends IPSModule
     public function ReceiveData($JSONString) {
 		
 		if ($this->Lock("InsideReceive")) { 
+			IPS_Sleep(500);
 
 			$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 			
