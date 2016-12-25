@@ -69,14 +69,8 @@ class EthernetRelay extends IPSModule
 	
 	public function UpdateRelayStatus() {
 		
-		$password = $this->ReadPropertyString("password");
-		$authenticted = true;
 		
-		if(strlen($password)>0) {
-			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
-		}
-		
-		if($authenticted)
+		if($this->Authenticate())
 			$result = $this->SendCmd(chr(91), "status");
 		else
 			$result = false;
@@ -84,17 +78,7 @@ class EthernetRelay extends IPSModule
 		return $result;
 	}
 	
-	private function Authenticate() {
-		$password = $this->ReadPropertyString("password");
-		$authenticated = true;
-		
-		if(strlen($password)>0) {
-			$authenticated = $this->SendCmd(chr(121).$password, "authenticate");
-		}
-		
-		$password="123456789123456789123456789";		
-		return $authenticated;
-	}
+	
 	
 	public function SwitchModeToggle(int $RelayNumber, int $Delay) {
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
@@ -135,16 +119,7 @@ class EthernetRelay extends IPSModule
 		else 
 			$cmd = chr(33);
 
-		
-		$password = $this->ReadPropertyString("password");
-		$authenticted = true;
-		
-		if(strlen($password)>0) {
-			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
-		}
-		
-		
-		if($authenticted) {
+		if($this->Authenticate()) {
 			$result = $this->SendCmd($cmd.chr($RelayNumber).chr(0), "switch");
 			$this->SendCmd(chr(91), "status");
 		} else
@@ -154,11 +129,6 @@ class EthernetRelay extends IPSModule
 	}
 	
 	
-	/*public function SendCommand(string $Command) {
-		$this->SendCmd($Command, "switch");
-		
-	}
-	*/
 	private function SendCmd($Command, $CommandType) {
 		if ($this->Lock("InsideSendCommand")) { 
 		
@@ -246,6 +216,18 @@ class EthernetRelay extends IPSModule
 		}
 	}
     
+	private function Authenticate() {
+		$password = $this->ReadPropertyString("password");
+		$authenticated = true;
+		
+		if(strlen($password)>0) {
+			$authenticated = $this->SendCmd(chr(121).$password, "authenticate");
+		}
+		
+		$password="123456789123456789123456789";		
+		return $authenticated;
+	}
+	
 	private function Lock($ident){
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 		for ($i = 0; $i < 200; $i++){
