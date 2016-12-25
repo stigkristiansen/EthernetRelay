@@ -28,7 +28,8 @@ class EthernetRelay extends IPSModule
 				
 		$ident="updaterelaystatus";
 		$name="Update Relay Status";
-		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nETHR_UpdateRelayStatus(".$this->InstanceID.");\nIPS_SetScriptTimer(".$id.",60);\n?>");	
+		$script = "<?\n//Do not modify!\nETHR_UpdateRelayStatus(".$this->InstanceID.");\nIPS_SetScriptTimer($_IPS[SELF],60);\n?>";
+		$id = $this->RegisterScript($ident, $name, $script);	
 		IPS_SetScriptTimer($id, 60);
    
     }
