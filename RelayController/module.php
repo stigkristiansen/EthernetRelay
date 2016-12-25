@@ -28,7 +28,7 @@ class EthernetRelay extends IPSModule
 				
 		$ident="updaterelaystatus";
 		$name="Update Relay Status";
-		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nETHR_UpdateRelayStatus(".$this->InstanceID.");\n?>");	
+		$id = $this->RegisterScript($ident, $name, "<?\n//Do not modify!\nETHR_UpdateRelayStatus(".$this->InstanceID.");\nIPS_SetScriptTimer($_IPS['SELF'],60);\n?>");	
 		IPS_SetScriptTimer($id, 60);
    
     }
@@ -81,7 +81,52 @@ class EthernetRelay extends IPSModule
 		return $result;
 	}
 	
+	private function Authenticate() {
+		$password = $this->ReadPropertyString("password");
+		$authenticted = true;
+		
+		if(strlen($password)>0) {
+			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
+		}
+		
+		$password="123456789123456789123456789";		
+		return $authenticated;
+	}
+	
+	public function SwitchModeToggle(int $RelayNumber, int $Delay) {
+		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+		
+		if($Delay <1 || $Delay > 9) {
+			$log->LogMessageError("Unsupported value for parameter Delay. Delay must be between 1 and 9 seconds");
+			return false;
+		}
+		
+		if($RelayNumber <1 || $RelayNumber > 2) {
+			$log->LogMessageError("Unsupported value for parameter RelayNumber. RelayNumber must be 1 or 2");
+			return false;
+		}
+			
+		if($this->Authenticated) {
+			$result = $this->SendCmd($cmd.chr($RelayNumber).chr($Delay*10), "switch");
+			$this->SendCmd(chr(91), "status");
+			if($result) {
+				$id = $this->GetIDForIdent('updaterelaystatus');
+				IPS_SetScriptTimer($id, $Delay);
+			}
+		} else
+			$result = false;
+			
+		return $result;
+	}
+	
 	public function SwitchMode(int $RelayNumber, bool $Status) {
+		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+		
+		if($RelayNumber <1 || $RelayNumber > 2) {
+			$log->LogMessageError("Unsupported value for parameter RelayNumber. RelayNumber must be 1 or 2");
+			return false;
+		}
+		
 		if($Status)
 			$cmd = chr(32);
 		else 
