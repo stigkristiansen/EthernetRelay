@@ -104,12 +104,11 @@ class EthernetRelay extends IPSModule
 	}
 	
 	
-	public function SendCommand(string $Command) {
-		
+	/*public function SendCommand(string $Command) {
 		$this->SendCmd($Command, "switch");
 		
 	}
-	
+	*/
 	private function SendCmd($Command, $CommandType) {
 		if ($this->Lock("InsideSendCommand")) { 
 		
@@ -120,21 +119,21 @@ class EthernetRelay extends IPSModule
 								
 			$buffer = $Command;
 			
-			$log->LogMessage("SendCmd - Sending command: ".$CommandType);
+			$log->LogMessage("Sending command: ".$CommandType);
 								
 			try{
 				$time = microtime(true);
 				
 				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 	
-				$log->LogMessage("SendCmd - Time is ".$time);
+				//$log->LogMessage("SendCmd - Time is ".$time);
 				$log->LogMessage("SendCmd - Waiting for data received...");
 				
 				$dataReceived = false;
 				$id = $this->GetIDForIdent("lastreceivedtime");
 				for($count=0;$count<10;$count++) {
 					$receivedTime = GetValueFloat($id);
-					$log->LogMessage("SendCmd - LastReceived update time is ".$receivedTime);
+					//$log->LogMessage("SendCmd - LastReceived update time is ".$receivedTime);
 					if($receivedTime>$time) {
 						$dataReceived = true;
 						break;
@@ -146,9 +145,10 @@ class EthernetRelay extends IPSModule
 					$id = $this->GetIDForIdent("lastreceived");
 					$receivedData = GetValueInteger($id);
 					
-					$log->LogMessage("SendCmd - Data was recieived: ".$receivedData);
+					$log->LogMessage("Data was recieived: ".$receivedData);
 														
 					if($CommandType=="status") {
+						$log->LogMessage("Oppdating relay status");
 						$idRelay1 = $this->GetIDForIdent("relay1");
 						$idRelay2 = $this->GetIDForIdent("relay2");
 						SetValueBoolean($idRelay1, $receivedData & 0x01);
@@ -158,22 +158,27 @@ class EthernetRelay extends IPSModule
 					}
 					
 					if($CommandType=='authenticate') {
-						if($receivedData==1)
+						if($receivedData==1) {
+							$log->LogMessage("Authentication is OK");
 							return true;
-						else
+						} else {
+							$log->LogMessageError("Authenticstion failed!");
 							return false;
+						}
 					}
 					
 					if($CommandType=='switch') {
-						if($receivedData==0)
+						if($receivedData==0) {
+							$log->LogMessage("Successfully chenged the state of the relay");
 							return true;
-						else
+						} else {
+							$log->LogMessageError("Failed to change the state of the relay!");
 							return false;
+						}
 					}
 				} else
-					$log->LogMessageError("SendCmd - Did not receive expected data!");
+					$log->LogMessageError("Did not receive expected data!");
 			
-				
 				return false;
 
 			} catch (Exeption $ex) {
@@ -187,13 +192,13 @@ class EthernetRelay extends IPSModule
 			
 		} else {
 			$log->LogMessageError("Already locked for sending. Please retry...");
-				
+			return false;	
 		}
 	}
     
 	private function Lock($ident){
 		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
-		for ($i = 0; $i < 100; $i++){
+		for ($i = 0; $i < 200; $i++){
 			if (IPS_SemaphoreEnter("ETHR_" . (string) $this->InstanceID . (string) $ident, 1)){
 				//$log->LogMessage($ident." is locked"); 
 				return true;
@@ -204,14 +209,14 @@ class EthernetRelay extends IPSModule
 			}
 		}
         
-        $log->LogMessage($ident." is already locked"); 
+        $log->LogMessageError($ident." is already locked"); 
         return false;
     }
 
     private function Unlock($ident)
     {
         IPS_SemaphoreLeave("ETHR_" . (string) $this->InstanceID . (string) $ident);
-		$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
+		//$log = new Logging($this->ReadPropertyBoolean("log"), IPS_Getname($this->InstanceID));
 		//$log->LogMessage($ident." is unlocked");
     }
 	
