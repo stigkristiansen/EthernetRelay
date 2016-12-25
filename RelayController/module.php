@@ -95,10 +95,12 @@ class EthernetRelay extends IPSModule
 			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
 		}
 		
+		
 		if($authenticted) {
 			$result = $this->SendCmd($cmd.chr($RelayNumber).chr(0), "switch");
 			$this->SendCmd(chr(91), "status");
-		}
+		} else
+			$result = false;
 			
 		return $result;
 	}
@@ -169,7 +171,7 @@ class EthernetRelay extends IPSModule
 					
 					if($CommandType=='switch') {
 						if($receivedData==0) {
-							$log->LogMessage("Successfully chenged the state of the relay");
+							$log->LogMessage("Successfully changed the state of the relay");
 							return true;
 						} else {
 							$log->LogMessageError("Failed to change the state of the relay!");
