@@ -121,7 +121,7 @@ class EthernetRelay extends IPSModule
 								
 			$buffer = $Command;
 			
-			$log->LogMessage("Sending command: ".$CommandType);
+			$log->LogMessage("Sent the command: ".$CommandType);
 								
 			try{
 				$time = microtime(true);
@@ -129,7 +129,7 @@ class EthernetRelay extends IPSModule
 				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 	
 				//$log->LogMessage("Time is ".$time);
-				$log->LogMessage("Waiting for data received...");
+				$log->LogMessage("Waiting for the result...");
 				
 				$dataReceived = false;
 				$id = $this->GetIDForIdent("lastreceivedtime");
