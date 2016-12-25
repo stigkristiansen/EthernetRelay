@@ -126,14 +126,14 @@ class EthernetRelay extends IPSModule
 				
 				$this->SendDataToParent(json_encode(Array("DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}", "Buffer" => $buffer)));
 	
-				//$log->LogMessage("SendCmd - Time is ".$time);
-				$log->LogMessage("SendCmd - Waiting for data received...");
+				//$log->LogMessage("Time is ".$time);
+				$log->LogMessage("Waiting for data received...");
 				
 				$dataReceived = false;
 				$id = $this->GetIDForIdent("lastreceivedtime");
 				for($count=0;$count<10;$count++) {
 					$receivedTime = GetValueFloat($id);
-					//$log->LogMessage("SendCmd - LastReceived update time is ".$receivedTime);
+					//$log->LogMessage("LastReceived update time is ".$receivedTime);
 					if($receivedTime>$time) {
 						$dataReceived = true;
 						break;
