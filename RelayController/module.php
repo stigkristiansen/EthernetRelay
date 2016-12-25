@@ -86,10 +86,10 @@ class EthernetRelay extends IPSModule
 	
 	private function Authenticate() {
 		$password = $this->ReadPropertyString("password");
-		$authenticted = true;
+		$authenticated = true;
 		
 		if(strlen($password)>0) {
-			$authenticted = $this->SendCmd(chr(121).$password, "authenticate");
+			$authenticated = $this->SendCmd(chr(121).$password, "authenticate");
 		}
 		
 		$password="123456789123456789123456789";		
