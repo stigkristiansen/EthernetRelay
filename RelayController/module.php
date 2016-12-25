@@ -114,7 +114,7 @@ class EthernetRelay extends IPSModule
 			$this->SendCmd(chr(91), "status");
 			if($result) {
 				$id = $this->GetIDForIdent('updaterelaystatus');
-				IPS_SetScriptTimer($id, $Delay);
+				IPS_SetScriptTimer($id, $Delay+1);
 			}
 		} else
 			$result = false;
